@@ -1,0 +1,179 @@
+(a): User Login Using Servlet + HTML Form
+) login.html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Login</title>
+</head>
+<body>
+<h2>Login Page</h2>
+<form action="LoginServlet" method="post">
+    Username: <input type="text" name="username"><br><br>
+    Password: <input type="password" name="password"><br><br>
+    <input type="submit" value="Login">
+</form>
+</body>
+</html>
+
+2) LoginServlet.java
+package com.demo;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class LoginServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String user = request.getParameter("username");
+        String pass = request.getParameter("password");
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        if(user.equals("admin") && pass.equals("1234")) {
+            out.println("<h2>Welcome, " + user + "!</h2>");
+        } else {
+            out.println("<h2>Invalid Login. Try Again.</h2>");
+        }
+    }
+}
+
+3) web.xml Entry
+<servlet>
+    <servlet-name>LoginServlet</servlet-name>
+    <servlet-class>com.demo.LoginServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>LoginServlet</servlet-name>
+    <url-pattern>/LoginServlet</url-pattern>
+</servlet-mapping>
+
+Part (b): Display Employee Records + Search by ID (Servlet + JDBC)
+CREATE TABLE Employee (
+ EmpID INT PRIMARY KEY,
+ Name VARCHAR(50),
+ Salary DOUBLE
+);
+
+1) EmployeeServlet.java
+java
+package com.demo;
+
+import java.io.*;
+import java.sql.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class EmployeeServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        String empId = request.getParameter("empid");
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/college", "root", "your_password");
+
+            out.println("<h2>Employee Records</h2>");
+            out.println("<form action='EmployeeServlet' method='get'>Search EmpID: ");
+            out.println("<input type='text' name='empid'> <input type='submit' value='Search'></form><br>");
+
+            String query = (empId != null && !empId.isEmpty()) ?
+                    "SELECT * FROM Employee WHERE EmpID=" + empId :
+                    "SELECT * FROM Employee";
+
+            ResultSet rs = con.createStatement().executeQuery(query);
+
+            out.println("<table border='1'><tr><th>EmpID</th><th>Name</th><th>Salary</th></tr>");
+            while (rs.next()) {
+                out.println("<tr><td>"+rs.getInt(1)+"</td><td>"+rs.getString(2)+"</td><td>"+rs.getDouble(3)+"</td></tr>");
+            }
+            out.println("</table>");
+
+            con.close();
+        } catch(Exception e) { out.println(e); }
+    }
+}
+
+Part (c): Student Attendance Portal (JSP + Servlet + JDBC)
+Table
+CREATE TABLE Attendance (
+ StudentID INT,
+ Date VARCHAR(20),
+ Status VARCHAR(10)
+);
+
+1) attendance.jsp
+<!DOCTYPE html>
+<html>
+<head><title>Attendance Form</title></head>
+<body>
+<h2>Student Attendance</h2>
+
+<form action="AttendanceServlet" method="post">
+    Student ID: <input type="text" name="sid"><br><br>
+    Date: <input type="text" name="date"><br><br>
+    Status: 
+    <select name="status">
+        <option>Present</option>
+        <option>Absent</option>
+    </select><br><br>
+    <input type="submit" value="Submit Attendance">
+</form>
+
+</body>
+</html>
+
+2) AttendanceServlet.java
+package com.demo;
+
+import java.io.*;
+import java.sql.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class AttendanceServlet extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String sid = request.getParameter("sid");
+        String date = request.getParameter("date");
+        String status = request.getParameter("status");
+
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/college", "root", "your_password");
+
+            PreparedStatement ps = con.prepareStatement("INSERT INTO Attendance VALUES(?,?,?)");
+            ps.setInt(1, Integer.parseInt(sid));
+            ps.setString(2, date);
+            ps.setString(3, status);
+            ps.executeUpdate();
+
+            out.println("<h2>Attendance Recorded Successfully!</h2>");
+            con.close();
+
+        } catch (Exception e) {
+            out.println(e);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
