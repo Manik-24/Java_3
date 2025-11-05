@@ -1,0 +1,225 @@
+ a: Dependency Injection in Spring Using Java-Based Configuration
+Course.java
+package com.springdi;
+
+public class Course {
+    public String getCourseName() {
+        return "Java Full Stack Development";
+    }
+}
+
+Student.java
+package com.springdi;
+
+public class Student {
+    private Course course;
+
+    public Student(Course course) {
+        this.course = course;
+    }
+
+    public void display() {
+        System.out.println("Student enrolled in: " + course.getCourseName());
+    }
+}
+
+AppConfig.java
+package com.springdi;
+
+import org.springframework.context.annotation.*;
+
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public Course course() {
+        return new Course();
+    }
+
+    @Bean
+    public Student student() {
+        return new Student(course());
+    }
+}
+
+MainApp.java
+package com.springdi;
+
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class MainApp {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        Student s = context.getBean(Student.class);
+        s.display();
+        context.close();
+    }
+}
+
+Part b: Hibernate Application for Student CRUD Operations
+hibernate.cfg.xml
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration SYSTEM "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+ <session-factory>
+   <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+   <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/test</property>
+   <property name="hibernate.connection.username">root</property>
+   <property name="hibernate.connection.password">root</property>
+   <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+   <property name="show_sql">true</property>
+   <mapping class="com.hibernate.Student"/>
+ </session-factory>
+</hibernate-configuration>
+
+Student.java
+package com.hibernate;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Student {
+
+    @Id
+    private int studentId;
+    private String name;
+    private String department;
+    private int marks;
+
+    // getters & setters
+}
+
+MainApp.java
+package com.hibernate;
+
+import org.hibernate.*;
+import org.hibernate.cfg.Configuration;
+
+public class MainApp {
+    public static void main(String[] args) {
+        SessionFactory sf = new Configuration().configure().buildSessionFactory();
+        Session s = sf.openSession();
+        Transaction tx = s.beginTransaction();
+
+        Student st = new Student();
+        st.setStudentId(1);
+        st.setName("Rahul");
+        st.setDepartment("CS");
+        st.setMarks(90);
+
+        s.save(st); // Create
+        tx.commit(); 
+
+        s.close();
+        sf.close();
+    }
+}
+
+package com.hibernate;
+
+import org.hibernate.*;
+import org.hibernate.cfg.Configuration;
+
+public class MainApp {
+    public static void main(String[] args) {
+        SessionFactory sf = new Configuration().configure().buildSessionFactory();
+        Session s = sf.openSession();
+        Transaction tx = s.beginTransaction();
+
+        Student st = new Student();
+        st.setStudentId(1);
+        st.setName("Rahul");
+        st.setDepartment("CS");
+        st.setMarks(90);
+
+        s.save(st); // Create
+        tx.commit(); 
+
+        s.close();
+        sf.close();
+    }
+}
+package com.hibernate;
+
+import org.hibernate.*;
+import org.hibernate.cfg.Configuration;
+
+public class MainApp {
+    public static void main(String[] args) {
+        SessionFactory sf = new Configuration().configure().buildSessionFactory();
+        Session s = sf.openSession();
+        Transaction tx = s.beginTransaction();
+
+        Student st = new Student();
+        st.setStudentId(1);
+        st.setName("Rahul");
+        st.setDepartment("CS");
+        st.setMarks(90);
+
+        s.save(st); // Create
+        tx.commit(); 
+
+        s.close();
+        sf.close();
+    }
+}
+Part c: Transaction Management in Spring + Hibernate (Bank Transfer)
+Account.java
+@Entity
+public class Account {
+    @Id
+    private int accNo;
+    private String name;
+    private double balance;
+
+    // getters & setters
+}
+
+AccountDAO.java
+@Repository
+public class AccountDAO {
+    @Autowired
+    private SessionFactory sf;
+
+    public Account getAccount(int id) {
+        return sf.getCurrentSession().get(Account.class, id);
+    }
+
+    public void updateAccount(Account acc) {
+        sf.getCurrentSession().update(acc);
+    }
+}
+
+BankService.java
+@Service
+@Transactional
+public class BankService {
+
+    @Autowired
+    AccountDAO dao;
+
+    public void transfer(int from, int to, double amount) {
+        Account a1 = dao.getAccount(from);
+        Account a2 = dao.getAccount(to);
+
+        a1.setBalance(a1.getBalance() - amount);
+        a2.setBalance(a2.getBalance() + amount);
+
+        dao.updateAccount(a1);
+        dao.updateAccount(a2);
+
+        System.out.println("Transaction Successful!");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
